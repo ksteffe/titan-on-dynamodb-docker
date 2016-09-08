@@ -13,16 +13,15 @@ RUN unzip /opt/titan.zip -d /opt/ && \
 WORKDIR /opt/dynamodb-titan100-storage-backend-1.0.0-hadoop1
 
 ENV DYNAMODB_CONFIG dynamodb-local.properties
-ENV DYNAMODB_ENDPOINT http://localhost:4567
-ENV GREMLIN_CONFIG gremlin-server-local.yaml
+ENV DYNAMODB_ENDPOINT http://dynamodb-local:8000
 
 ADD $DYNAMODB_CONFIG conf/gremlin-server/
 RUN sed -i 's@DYNAMODB_ENDPOINT@'"$DYNAMODB_ENDPOINT"'@g' conf/gremlin-server/$DYNAMODB_CONFIG
 
-ADD $GREMLIN_CONFIG conf/gremlin-server/
+ADD gremlin-server-local.yaml conf/gremlin-server/
 
 EXPOSE 8182
 EXPOSE 8183
 EXPOSE 8184
 
-CMD ["bin/gremlin-server.sh", "conf/gremlin-server/"$GREMLIN_CONFIG"]
+CMD ["bin/gremlin-server.sh", "conf/gremlin-server/gremlin-server-local.yaml"]
