@@ -1,27 +1,30 @@
-FROM maven:3.3.3-jdk-8
+FROM ubuntu:16.04
 
 MAINTAINER Diego Ferri <diego.ferri@looptribe.com>
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y git zip curl
+RUN apt-get install -y git zip curl netcat default-jdk maven
 
-RUN curl -o /opt/titan.zip https://s3.amazonaws.com/dynamodb-titan-us-east-1/dynamodb-titan100-storage-backend-1.0.0-hadoop1.zip
+WORKDIR /opt
 
-RUN unzip /opt/titan.zip -d /opt/ && \
-    rm /opt/titan.zip
+RUN git clone https://github.com/awslabs/dynamodb-titan-storage-backend.git
 
-WORKDIR /opt/dynamodb-titan100-storage-backend-1.0.0-hadoop1
+WORKDIR /opt/dynamodb-titan-storage-backend
 
-ENV DYNAMODB_CONFIG dynamodb-local.properties
-ENV DYNAMODB_ENDPOINT http://brainframe__dynamodb-local:8000
+RUN mvn install
 
-ADD $DYNAMODB_CONFIG conf/gremlin-server/
-RUN sed -i 's@DYNAMODB_ENDPOINT@'"$DYNAMODB_ENDPOINT"'@g' conf/gremlin-server/$DYNAMODB_CONFIG
+RUN src/test/resources/install-gremlin-server.sh
 
-ADD gremlin-server-local.yaml conf/gremlin-server/
+COPY dynamodb-local-installer.sh .
 
-EXPOSE 8182
-EXPOSE 8183
-EXPOSE 8184
+RUN /bin/bash -c ./dynamodb-local-installer.sh
 
-CMD ["bin/gremlin-server.sh", "conf/gremlin-server/gremlin-server-local.yaml"]
+WORKDIR /opt/dynamodb-titan-storage-backend/server/dynamodb-titan100-storage-backend-1.0.0-hadoop1
+
+COPY gremlin-server-local.yaml conf/gremlin-server/
+
+COPY entrypoint.sh .
+
+EXPOSE 8182 8183 8184
+
+ENTRYPOINT ["./entrypoint.sh"]
