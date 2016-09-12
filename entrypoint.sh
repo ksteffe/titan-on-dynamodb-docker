@@ -8,6 +8,6 @@ done
 
 echo "DynamoDB Storage Backend for Titan 1.0.0 launched"
 
-bin/gremlin-server.sh ${PWD}/conf/gremlin-server/gremlin-server-local.yaml
+bin/gremlin-server.sh ${PWD}/conf/gremlin-server/gremlin-server-local.yaml &
 
 echo "Titan 1.0.0 launched"
